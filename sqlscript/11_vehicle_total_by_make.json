@@ -1,0 +1,20 @@
+{
+	"name": "11_vehicle_total_by_make",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer\n\n--Vehicle total by make\n\nSELECT \nmake,\nCOUNT(make) AS total_count\nFROM\nOPENROWSET(\n        BULK 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net/bronze/vehicle.csv', \n        FORMAT = 'CSV', \n        PARSER_VERSION = '2.0', \n        HEADER_ROW = TRUE\n        ) WITH (\n            vehicleID           INT,\n            vin                 VARCHAR(10),\n            modelYEar           SMALLINT,\n            make                VARCHAR(25), \n            model               VARCHAR(25),\n            electricRange       SMALLINT,\n            baseMSRP           INT,\n            vehicheTypeId       SMALLINT,\n            cafvEligibilityId   SMALLINT,\n            vehicleLocation     VARCHAR(30)\n            )\n        AS [result]\n    GROUP BY make\n    HAVING COUNT(make) > 1000;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_explorer",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

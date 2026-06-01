@@ -1,0 +1,20 @@
+{
+	"name": "05_usp_create_silver_calendar",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/usp"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nCREATE OR ALTER PROC silver.usp_silver_calendar\nAS\nBEGIN\n    IF OBJECT_ID('silver.calendar') IS NOT NULL\n        DROP EXTERNAL TABLE silver.calendar;\n\n    CREATE EXTERNAL TABLE silver.calendar\n    WITH(\n        DATA_SOURCE = electric_vehicle_source,\n        LOCATION = 'silver/calendar',\n        FILE_FORMAT = parquet_file_format\n    ) \n    AS\n        SELECT *\n        FROM bronze.calendar;\nEND\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

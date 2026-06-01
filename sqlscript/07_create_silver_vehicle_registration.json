@@ -1,0 +1,20 @@
+{
+	"name": "07_create_silver_vehicle_registration",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/ingestion"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n/*\nIF OBJECT_ID('silver.vehicle_registration') IS NOT NULL\n    DROP EXTERNAL TABLE silver.vehicle_registration\nGO\n\nCREATE EXTERNAL TABLE  silver.vehicle_registration\nWITH\n(\n    DATA_SOURCE = electric_vehicle_source,\n    LOCATION = 'silver/vehicle_registration',\n    FILE_FORMAT = parquet_file_format\n)AS\nSELECT * FROM bronze.vehicle_registration_csv\nGO\n*/\n\n--DROP EXTERNAL TABLE silver.vehicle_registration_2024_02;\n\nEXEC silver.usp_silver_vehicle_registration '2024', '01' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '02' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '03' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '04' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '05' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '06' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '07' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '08' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '09' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '10' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '11' GO\nEXEC silver.usp_silver_vehicle_registration '2024', '12' GO\nEXEC silver.usp_silver_vehicle_registration '2025', '01' GO\nEXEC silver.usp_silver_vehicle_registration '2025', '02' GO\nEXEC silver.usp_silver_vehicle_registration '2025', '03' GO\nEXEC silver.usp_silver_vehicle_registration '2025', '04' GO\n\nSELECT *  FROM silver.vehicle_registration\nGO\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

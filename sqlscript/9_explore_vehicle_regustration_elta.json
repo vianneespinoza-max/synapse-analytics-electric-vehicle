@@ -1,0 +1,20 @@
+{
+	"name": "9_explore_vehicle_regustration_elta",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer\n\n-- when folder is specified (delta) the code looks for delta_log file, where transactions are stored\n-- ids necessary to have delta_log file to been able to read the files\n\nSELECT TOP 100 * \nFROM \nOPENROWSET(\n    BULK 'vehicle_registration_delta/' ,\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'DELTA'\n) AS Vehicle_registration;\n\n-- this data includes year and month columns\nEXEC sp_describe_first_result_set N'\nSELECT TOP 100 * \nFROM \nOPENROWSET(\n    BULK ''vehicle_registration_delta/'' ,\n    DATA_SOURCE = ''electric_vehicle_data_bronze'',\n    FORMAT = ''DELTA''\n) AS Vehicle_registration;'\n\n\n\nSELECT TOP 100 * \nFROM \nOPENROWSET(\n    BULK 'vehicle_registration_delta/' ,\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'DELTA'\n) WITH(\n    --vehicleId           INT,\n    --locationId          SMALLINT,\n    propietaryId        TINYINT,\n    dolVehicleId        INT,\n    --registrationDate    DATETIME2(7),\n    year                VARCHAR(4),\n    month               VARCHAR(2)\n\n)AS Vehicle_registration\n\n\nSELECT COUNT(DISTINCT locationId)\nFROM \nOPENROWSET(\n    BULK 'vehicle_registration_delta/' ,\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'DELTA'\n) AS Vehicle_registration\nWHERE year = '2024' AND\n    month = '01'",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_explorer",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

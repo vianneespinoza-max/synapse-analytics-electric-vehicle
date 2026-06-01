@@ -1,0 +1,20 @@
+{
+	"name": "03_create_silver_propietary",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/ingestion"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nIF OBJECT_ID('silver.propietary') IS NOT NULL\n    DROP EXTERNAL TABLE silver.propietary\nGO\n\nCREATE EXTERNAL TABLE  silver.propietary\nWITH\n(\n    DATA_SOURCE = electric_vehicle_source,\n    LOCATION = 'silver/propietary',\n    FILE_FORMAT = parquet_file_format\n)AS\nSELECT * FROM bronze.propietary\nGO\n\nSELECT *  FROM silver.propietary\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

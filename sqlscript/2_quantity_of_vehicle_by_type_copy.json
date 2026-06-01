@@ -1,0 +1,20 @@
+{
+	"name": "2_quantity_of_vehicle_by_type_copy",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/dwh"
+		},
+		"content": {
+			"query": "\n\nCOPY INTO dwh.quantity_of_vehicle_by_type_copy\nFROM 'https://asynapseadls.dfs.core.windows.net/electric-vehicle-data/gold/quantity_of_vehicle_by_type'\nWITH\n(\n\tFILE_TYPE = 'PARQUET'\n\t,MAXERRORS = 0\n\t, AUTO_CREATE_TABLE = 'ON' \n)\nGO\n\nSELECT TOP 100 * FROM dwh.quantity_of_vehicle_by_type\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_dwh",
+				"poolName": "electric_vehicle_dwh"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

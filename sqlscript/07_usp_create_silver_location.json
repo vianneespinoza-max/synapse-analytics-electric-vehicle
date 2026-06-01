@@ -1,0 +1,20 @@
+{
+	"name": "07_usp_create_silver_location",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/usp"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nCREATE OR ALTER PROC silver.usp_silver_location\nAS\nBEGIN\n    IF OBJECT_ID('silver.location') IS NOT NULL\n        DROP EXTERNAL TABLE silver.location;\n\n    CREATE EXTERNAL TABLE silver.location\n    WITH(\n        DATA_SOURCE = electric_vehicle_source,\n        LOCATION = 'silver/location',\n        FILE_FORMAT = parquet_file_format\n    ) \n    AS\n        SELECT *\n        FROM bronze.location;\nEND;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

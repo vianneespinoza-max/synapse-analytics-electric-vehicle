@@ -1,0 +1,20 @@
+{
+	"name": "03_create_external_file_formats",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/utils"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw;\n\n-- Create an external file format for DELIMITED (CSV/TSV) files.\n\nIF NOT EXISTS (SELECT name FROM sys.external_file_formats WHERE name = 'csv_file_format')\n\nCREATE EXTERNAL FILE FORMAT csv_file_format\nWITH (\n        FORMAT_TYPE = DELIMITEDTEXT\n    , FORMAT_OPTIONS ( \n        FIELD_TERMINATOR = ','\n        , STRING_DELIMITER = '\"'\n        , FIRST_ROW = 2 \n        , USE_TYPE_DEFAULT = FALSE  --if there are null values, which wiil be the default value\n        , ENCODING = 'UTF8'\n        , PARSER_VERSION = '2.0'\n    )\n    );\n\n-- Create External File Format for \"csv_file_format_v2\"\nIF NOT EXISTS (SELECT name FROM sys.external_file_formats WHERE name = 'csv_file_format_v2')\n\nCREATE EXTERNAL FILE FORMAT csv_file_format_v2\nWITH (\n        FORMAT_TYPE = DELIMITEDTEXT\n    , FORMAT_OPTIONS ( \n        FIELD_TERMINATOR = ';'\n        , STRING_DELIMITER = '\"'\n        , FIRST_ROW = 2 \n        , USE_TYPE_DEFAULT = FALSE  --if there are null values, which wiil be the default value\n        , ENCODING = 'UTF8'\n        , PARSER_VERSION = '2.0'\n    )\n    );\n\n\n-- Create External File Format for \"csv_file_format_v3\"\nIF NOT EXISTS (SELECT name FROM sys.external_file_formats WHERE name = 'csv_file_format_v3')\n\nCREATE EXTERNAL FILE FORMAT csv_file_format_v3\nWITH (\n        FORMAT_TYPE = DELIMITEDTEXT\n    , FORMAT_OPTIONS ( \n        FIELD_TERMINATOR = ';'\n        , STRING_DELIMITER = '\\'\n        , FIRST_ROW = 2 \n        , USE_TYPE_DEFAULT = FALSE  --if there are null values, which wiil be the default value\n        , ENCODING = 'UTF8'\n        , PARSER_VERSION = '2.0'\n    )\n    );\n\n\n-- Create External File Format for \"tsv_file_format\"\nIF NOT EXISTS (SELECT name FROM sys.external_file_formats WHERE name = 'tsv_file_format')\n\nCREATE EXTERNAL FILE FORMAT tsv_file_format\nWITH (\n        FORMAT_TYPE = DELIMITEDTEXT\n    , FORMAT_OPTIONS ( \n        FIELD_TERMINATOR = '\\t'\n        , STRING_DELIMITER = '\"'\n        , FIRST_ROW = 2 \n        , USE_TYPE_DEFAULT = FALSE  --if there are null values, which wiil be the default value\n        , ENCODING = 'UTF8'\n        , PARSER_VERSION = '2.0'\n    )\n    );\n\n--Create an external file format for PARQUET files.\nIF NOT EXISTS (SELECT name FROM sys.external_file_formats WHERE name = 'parquet_file_format')\n\nCREATE EXTERNAL FILE FORMAT parquet_file_format\nWITH (\n        FORMAT_TYPE = PARQUET\n        , DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n    );\n\n-- Create an external file format for delta table files\nIF NOT EXISTS (SELECT name FROM sys.external_file_formats WHERE name = 'delta_file_format')\n\nCREATE EXTERNAL FILE FORMAT delta_file_format\nWITH (\n         FORMAT_TYPE = DELTA\n      );\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

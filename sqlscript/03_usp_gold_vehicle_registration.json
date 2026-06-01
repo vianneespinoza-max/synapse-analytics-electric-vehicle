@@ -1,0 +1,20 @@
+{
+	"name": "03_usp_gold_vehicle_registration",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/usp"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nCREATE OR ALTER PROCEDURE gold.usp_gold_vehicle_registration_by_year_and_month\n@year VARCHAR(4),\n@month VARCHAR(6)\nAS\nBEGIN\n\n    DECLARE @create_sql_stmt NVARCHAR(MAX),\n            @drop_sql_stmt NVARCHAR(MAX),\n            @table_name NVARCHAR(100)\n    \n    -- Construir nombre de tabla\n    SET @table_name = 'vehicle_registered_by_year_and_month_' + @year + '_' + @month\n    \n    -- Verificar si la tabla existe y eliminarla\n    SET @drop_sql_stmt = '\n    IF EXISTS (SELECT * FROM sys.external_tables \n               WHERE name = ''' + @table_name + ''' \n               AND schema_id = SCHEMA_ID(''gold''))\n    BEGIN\n        DROP EXTERNAL TABLE gold.' + @table_name + '\n    END'\n    \n    PRINT('Eliminando tabla si existe...')\n    PRINT(@drop_sql_stmt)\n    EXEC sp_executesql @drop_sql_stmt;\n    \n    -- Crear la nueva tabla externa\n    SET @create_sql_stmt = '\n    CREATE EXTERNAL TABLE gold.' + @table_name + '\n    WITH(\n        DATA_SOURCE = electric_vehicle_source,\n        LOCATION = ''gold/vehicle_registered_by_year_and_month/year=' + @year + '/month=' + @month + ''',\n        FILE_FORMAT = parquet_file_format\n    )\n    AS\n        SELECT c.year, c.month,\n        vr.registration_date, \n        v.vin, v.model, v.model_year, v.make, v.electric_range, v.longitude, v.latitude,\n        l.country, l.city, l.state, l.postal_code\n        FROM\n        silver.vw_vehicle_registration vr\n        INNER JOIN silver.vehicle v ON (vr.vehicle_id = v.vehicle_id)\n        INNER JOIN silver.location l ON (vr.location_id = l.location_id)\n        INNER JOIN silver.calendar c ON (CAST(vr.registration_date AS DATE) = c.date) \n        WHERE c.year = '''+@year+''' and c.month = '''+@month+'''\n        ORDER BY v.vin, vr.registration_date';\n\n    \n    PRINT('Creando tabla externa...')\n    PRINT(@create_sql_stmt)\n    EXEC sp_executesql @create_sql_stmt;\nEND \nGO\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

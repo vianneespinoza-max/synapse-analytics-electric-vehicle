@@ -1,0 +1,177 @@
+{
+	"name": "pl_silver_vehicle_registration",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Year and Month",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_serverless_sql_pool_db_electric_vehicle_ldw",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": "USE electric_vehicle_ldw;"
+						},
+						{
+							"type": "Query",
+							"text": "SELECT DISTINCT\n    year, \n    month\n    FROM bronze.vw_vehicle_registration_csv\n    ORDER BY year, month;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "ForEach Year and Month",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Year and Month",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GEt Year and Month').output.resultSets[0].Rows",
+						"type": "Expression"
+					},
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "Delete Partitions",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_electric_vehicle_data_dynamic",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folder_path": {
+											"value": "silver/vehicle_registration/year=@{item().year}/month=@{item().month}",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Create Partitions",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Delete Partitions",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[silver].[usp_silver_vehicle_registration]",
+								"storedProcedureParameters": {
+									"month": {
+										"value": {
+											"value": "@item().month",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"year": {
+										"value": {
+											"value": "@item().year",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_serverless_sql_pool_db_electric_vehicle_ldw",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Create Silver View",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "ForEach Year and Month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_serverless_sql_pool_db_electric_vehicle_ldw",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": "USE electric_vehicle_ldw;\n"
+						},
+						{
+							"type": "Query",
+							"text": "DROP VIEW IF EXISTS silver.vw_vehicle_registration;\n"
+						},
+						{
+							"type": "Query",
+							"text": "CREATE VIEW silver.vw_vehicle_registration\nAS\n    SELECT\n    result.filepath(1) AS year,\n    result.filepath(2) AS month,\n    result.*\n    FROM\n    OPENROWSET(\n        BULK 'silver/vehicle_registration/year=*/month=*/*.parquet',\n        DATA_SOURCE = 'electric_vehicle_source',\n        FORMAT = 'PARQUET'\n    )\n    WITH(\n        vehicle_id          INT,\n        location_id         SMALLINT,\n        propietary_id       INT,\n        dol_vehicle_id      INT,\n        registration_date   DATETIME2(7)\n    )\n    AS [result];"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-05-21T23:23:58Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

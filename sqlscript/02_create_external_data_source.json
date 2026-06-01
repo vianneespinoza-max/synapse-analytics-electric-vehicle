@@ -1,0 +1,20 @@
+{
+	"name": "02_create_external_data_source",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/utils"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw;\n\n\nIF NOT EXISTS (SELECT name FROM sys.external_data_sources WHERE name = 'electric_vehicle_source')\nCREATE EXTERNAL DATA SOURCE electric_vehicle_source\nWITH\n(   LOCATION = 'https://asynapseadls.dfs.core.windows.net/electric-vehicle-data'\n);\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "10_function",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer\n\n\nSELECT \nMIN(electricRange) AS minElectricRange,\nMAX(electricRange) AS maxElectricRang,\nAVG(electricRange) AS avgElectricRange,\nCOUNT(1) AS total_numbre_of_electric_range,\nCOUNT(electricRange) AS not_null_total_numbre_of_electric_range\nFROM\nOPENROWSET(\n        BULK 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net/bronze/vehicle.csv', \n        FORMAT = 'CSV', \n        PARSER_VERSION = '2.0', \n        HEADER_ROW = TRUE\n        ) WITH (\n            vehicleID           INT,\n            vin                 VARCHAR(10),\n            modelYEar           SMALLINT,\n            make                VARCHAR(25), \n            model               VARCHAR(25),\n            electricRange       SMALLINT,\n            baseMSRP           INT,\n            vehicheTypeId       SMALLINT,\n            cafvEligibilityId   SMALLINT,\n            vehicleLocation     VARCHAR(30)\n            )\n        AS [result]\n        WHERE electricRange > 0 AND make='Tesla'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

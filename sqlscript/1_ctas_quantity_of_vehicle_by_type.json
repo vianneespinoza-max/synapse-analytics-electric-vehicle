@@ -1,0 +1,20 @@
+{
+	"name": "1_ctas_quantity_of_vehicle_by_type",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/dwh"
+		},
+		"content": {
+			"query": "CREATE SCHEMA staging\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'parquet_file_format') \n\tCREATE EXTERNAL FILE FORMAT parquet_file_format\n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'electric_vehicle_source') \n\tCREATE EXTERNAL DATA SOURCE electric_vehicle_source\n\tWITH (\n\t\tLOCATION = 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE staging.ext_quantity_of_vehicle_by_type (\n\t[year] smallint,\n\t[month] tinyint,\n\t[make] nvarchar(50),\n\t[electric_vehicle_type] nvarchar(50),\n\t[vehicle_register_count] int\n\t)\n\tWITH (\n\tLOCATION = 'gold/quantity_of_vehicle_by_type',\n\tDATA_SOURCE = electric_vehicle_source,\n\tFILE_FORMAT = parquet_file_format\n\t)\nGO\n\n\nSELECT TOP 100 * FROM staging.ext_quantity_of_vehicle_by_type\nGO\n\n\nCREATE SCHEMA dwh\nGO\n\nCREATE TABLE dwh.quantity_of_vehicle_by_type\n    WITH ( \n\t\tDISTRIBUTION = ROUND_ROBIN,\n\t\tCLUSTERED COLUMNSTORE INDEX --default for Synapse Analytics \n    )  \n    AS\n\tSELECT * FROM staging.ext_quantity_of_vehicle_by_type\nGO\n\nSELECT * FROM staging.ext_quantity_of_vehicle_by_type\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_dwh",
+				"poolName": "electric_vehicle_dwh"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

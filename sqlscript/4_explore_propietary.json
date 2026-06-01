@@ -1,0 +1,20 @@
+{
+	"name": "4_explore_propietary",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer\n\nSELECT * FROM\nOPENROWSET(\n    BULK 'propietary.tsv',\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'CSV',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE,\n    FIELDTERMINATOR = '\\t'\n) WITH(\n    propietaryid        TINYINT 1,\n    electricUtility     VARCHAR(150)\n) AS propietary;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_explorer",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

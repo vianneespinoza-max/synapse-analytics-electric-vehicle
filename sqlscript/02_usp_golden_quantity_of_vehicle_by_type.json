@@ -1,0 +1,20 @@
+{
+	"name": "02_usp_golden_quantity_of_vehicle_by_type",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/usp"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nCREATE OR ALTER PROCEDURE gold.usp_golden_quantity_of_vehicle_by_type\n@year VARCHAR(4),\n@month VARCHAR(2)\nAS\nBEGIN\n    DECLARE @create_sql_stmt NVARCHAR(MAX),\n            @drop_sql_stmt NVARCHAR(MAX),\n            @table_name NVARCHAR(100)\n    \n    -- Construir nombre de tabla\n    SET @table_name = 'quantity_of_vehicle_by_type_' + @year + '_' + @month\n    \n    -- Verificar si la tabla existe y eliminarla\n    SET @drop_sql_stmt = '\n    IF EXISTS (SELECT * FROM sys.external_tables \n               WHERE name = ''' + @table_name + ''' \n               AND schema_id = SCHEMA_ID(''gold''))\n    BEGIN\n        DROP EXTERNAL TABLE gold.' + @table_name + '\n    END'\n    \n    PRINT('Eliminando tabla si existe...')\n    PRINT(@drop_sql_stmt)\n    EXEC sp_executesql @drop_sql_stmt;\n    \n    -- Crear la nueva tabla externa\n    SET @create_sql_stmt = '\n    CREATE EXTERNAL TABLE gold.' + @table_name + '\n    WITH(\n        DATA_SOURCE = electric_vehicle_source,\n        LOCATION = ''gold/quantity_of_vehicle_by_type/year=' + @year + '/month=' + @month + ''',\n        FILE_FORMAT = parquet_file_format\n    )\n    AS\n        SELECT c.year, c.month, \n            v.make, \n            vt.electric_vehicle_type,\n            COUNT(1) AS vehicle_register_count\n        FROM\n        silver.vw_vehicle_registration vr\n        INNER JOIN silver.vehicle v ON (vr.vehicle_id = v.vehicle_id)\n        INNER JOIN silver.vehicle_type vt ON (vt.vehicle_type = v.vehiche_type_id)\n        INNER JOIN silver.calendar c ON (CAST(vr.registration_date AS DATE) = c.date)\n        WHERE c.year = ''' + @year + ''' AND c.month = ''' + @month + '''\n        GROUP BY c.year, c.month, v.make, vt.electric_vehicle_type\n    '\n    \n    PRINT('Creando tabla externa...')\n    PRINT(@create_sql_stmt)\n    EXEC sp_executesql @create_sql_stmt;\nEND \nGO\n\n--DROP PROCEDURE silver.usp_silver_vehicle_registration;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

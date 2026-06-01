@@ -1,0 +1,125 @@
+{
+	"name": "pl_create_silver_tables",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Folder Path",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('v_folder_path_usp_name_array')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Delete Silver Folder",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_electric_vehicle_data_dynamic",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folder_path": {
+											"value": "@item().folder_path",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"deleteFolder": true
+							}
+						},
+						{
+							"name": "Create Silver Table",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Delete Silver Folder",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@item().usp_name",
+									"type": "Expression"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_serverless_sql_pool_db_electric_vehicle_ldw",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"v_folder_path": {
+				"type": "String",
+				"defaultValue": "silver/vehicle"
+			},
+			"v_usp_name": {
+				"type": "String",
+				"defaultValue": "silver.usp_silver_vehicle"
+			},
+			"v_folder_path_usp_name_array": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"folder_path": "silver/vehicle",
+						"usp_name": "silver.usp_silver_vehicle"
+					},
+					{
+						"folder_path": "silver/calendar",
+						"usp_name": "silver.usp_silver_calendar"
+					},
+					{
+						"folder_path": "silver/propietary",
+						"usp_name": "silver.usp_silver_propietary"
+					},
+					{
+						"folder_path": "silver/location",
+						"usp_name": "silver.usp_silver_location"
+					},
+					{
+						"folder_path": "silver/cafv_eligibility",
+						"usp_name": "silver.usp_silver_cafv_eligibility"
+					},
+					{
+						"folder_path": "silver/vehicle_type",
+						"usp_name": "silver.usp_silver_vehicle_type"
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-21T23:39:09Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,19 @@
+{
+	"name": "ls_serverless_sql_pool_db_electric_vehicle_ldw",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "tcp:a-synapse-wrkspc-ondemand.sql.azuresynapse.net,1433",
+			"database": "electric_vehicle_ldw",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

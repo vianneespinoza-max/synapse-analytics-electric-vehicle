@@ -1,0 +1,20 @@
+{
+	"name": "01_usp_silver_vehicle_registration",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/usp"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nCREATE OR ALTER PROCEDURE silver.usp_silver_vehicle_registration\n@year VARCHAR(4),\n@month VARCHAR(2)\nAS\nBEGIN\n    DECLARE @create_sql_stmt NVARCHAR(MAX),\n            @drop_sql_stmt NVARCHAR(MAX),\n            @table_name NVARCHAR(100)\n    \n    -- Construir nombre de tabla\n    SET @table_name = 'vehicle_registration_' + @year + '_' + @month\n    \n    -- Verificar si la tabla existe y eliminarla\n    SET @drop_sql_stmt = '\n    IF EXISTS (SELECT * FROM sys.external_tables \n               WHERE name = ''' + @table_name + ''' \n               AND schema_id = SCHEMA_ID(''silver''))\n    BEGIN\n        DROP EXTERNAL TABLE silver.' + @table_name + '\n    END'\n    \n    PRINT('Eliminando tabla si existe...')\n    PRINT(@drop_sql_stmt)\n    EXEC sp_executesql @drop_sql_stmt;\n    \n    -- Crear la nueva tabla externa\n    SET @create_sql_stmt = '\n    CREATE EXTERNAL TABLE silver.' + @table_name + '\n    WITH(\n        DATA_SOURCE = electric_vehicle_source,\n        LOCATION = ''silver/vehicle_registration/year=' + @year + '/month=' + @month + ''',\n        FILE_FORMAT = parquet_file_format\n    )\n    AS\n        SELECT \n            vehicleId AS vehicle_id,\n            locationId AS location_id,\n            propietaryId AS propietary_id,\n            dolVehicleId AS dol_vehicle_id,\n            registrationDate AS registration_date\n        FROM bronze.vw_vehicle_registration_csv\n        WHERE year = ''' + @year + ''' AND month = ''' + @month + '''\n    '\n    \n    PRINT('Creando tabla externa...')\n    PRINT(@create_sql_stmt)\n    EXEC sp_executesql @create_sql_stmt;\nEND \nGO\n\n--DROP PROCEDURE silver.usp_silver_vehicle_registration;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "6_explore_cafv_elegibilityt",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer\n\n-- Reading JSON files with matrix of data separated by commas\nSELECT cafvEligibility_id, classification\nFROM OPENROWSET(\n    BULK 'cafv_eligibility.json',\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'CSV',\n    FIELDTERMINATOR = '0x0b',\n    FIELDQUOTE = '0x0b',\n    ROWTERMINATOR = '0x0b'\n) \nWITH (\n    jsonDoc NVARCHAR(MAX)\n) AS cafv_elegibility\nCROSS APPLY OPENJSON(jsonDoc)\nWITH(\n    cafvEligibility_id SMALLINT '$.cafvEligibility',   \n    classification VARCHAR(100) \n)\n;\n\n\n\n-- Multi-line\n-- Reading JSON files with matrix of data separated by commas\n\nSELECT cafvEligibility_id, classification\nFROM OPENROWSET(\n    BULK 'cafv_eligibility_multi_line.json',\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'CSV',\n    FIELDTERMINATOR = '0x0b',\n    FIELDQUOTE = '0x0b',\n    ROWTERMINATOR = '0x0b'\n) \nWITH (\n    jsonDoc NVARCHAR(MAX)\n) AS cafv_elegibility_multi_line\nCROSS APPLY OPENJSON(jsonDoc)\nWITH(\n    cafvEligibility_id SMALLINT '$.cafvEligibility',   \n    classification VARCHAR(100) \n)\n;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_explorer",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

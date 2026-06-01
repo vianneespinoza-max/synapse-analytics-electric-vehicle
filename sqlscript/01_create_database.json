@@ -1,0 +1,20 @@
+{
+	"name": "01_create_database",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/utils"
+		},
+		"content": {
+			"query": "-- master database has to be used when a database is going to be creted\nUSE master\nGO\n\nCREATE DATABASE electric_vehicle_ldw\nGO\n\nALTER DATABASE electric_vehicle_ldw COLLATE Latin1_General_100_BIN2_UTF8;\n\nUSE electric_vehicle_ldw\nGO\n\nCREATE SCHEMA bronze\nGO\n\nCREATE SCHEMA silver\n\nCREATE SCHEMA gold\nGO\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

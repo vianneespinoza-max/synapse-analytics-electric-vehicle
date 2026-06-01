@@ -1,0 +1,20 @@
+{
+	"name": "01_create_silver_vehicle",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/ingestion"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nIF OBJECT_ID('silver.vehicle') IS NOT NULL\n    DROP EXTERNAL TABLE silver.vehicle\nGO\n\nCREATE EXTERNAL TABLE silver.vehicle\nWITH(\n    DATA_SOURCE = electric_vehicle_source,\n    LOCATION = 'silver/vehicle',\n    FILE_FORMAT = parquet_file_format\n) \nAS\n    SELECT vehicle_id, vin, model_year, make, model, electric_range, base_MSRP AS base_msrp,\n    vehiche_type_id, cafv_eligibility_id, \n    CAST(SUBSTRING(\n        vehicle_location, \n        CHARINDEX(' ', vehicle_location) +2,\n        CHARINDEX(' ', vehicle_location, CHARINDEX(' ', vehicle_location)+1) -  CHARINDEX(' ',vehicle_location)-1\n    )AS FLOAT\n    )AS longitude,\n    CAST(SUBSTRING(\n        vehicle_location, \n        CHARINDEX(' ', vehicle_location, CHARINDEX(' ', vehicle_location) + 1) + 1,\n        LEN(vehicle_location) - CHARINDEX(' ', vehicle_location, CHARINDEX(' ',vehicle_location)+1)-1\n    )AS FLOAT\n    )AS latitude\n    FROM bronze.vehicle\nGO\n\nSELECT * FROM silver.vehicle",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

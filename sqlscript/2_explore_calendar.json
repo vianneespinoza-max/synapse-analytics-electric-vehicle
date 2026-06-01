@@ -1,0 +1,20 @@
+{
+	"name": "2_explore_calendar",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer;\n\n\n-- Bring calendar data\n-- Example using DATA_SOURCE at Folder level\nSELECT *\nFROM\nOPENROWSET(\n        BULK 'calendar.csv', --this is the option abfss\n        DATA_SOURCE = 'electric_vehicle_data_bronze',\n        FORMAT = 'CSV', \n        PARSER_VERSION = '2.0', \n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = ';'\n        ) AS calendar\n\n\nEXEC sp_describe_first_result_set N'SELECT *\nFROM\nOPENROWSET(\n        BULK ''calendar.csv'', --this is the option abfss\n        DATA_SOURCE = ''electric_vehicle_data_bronze'',\n        FORMAT = ''CSV'', \n        PARSER_VERSION = ''2.0'', \n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = '';''\n        ) AS calendar'\n\n\n\n-- Data scheme definition\nSELECT *\nFROM\nOPENROWSET(\n        BULK 'calendar.csv', --this is the option abfss\n        DATA_SOURCE = 'electric_vehicle_data_bronze',\n        FORMAT = 'CSV', \n        PARSER_VERSION = '2.0', \n        HEADER_ROW = TRUE,\n        FIELDTERMINATOR = ';'\n        ) WITH (\n            dateKey         INT 1,\n            date            DATE 2,\n            year            SMALLINT 3,\n            month           TINYINT 4, \n            day             TINYINT 5,\n            monthName       VARCHAR(10) 6,\n            dayName         VARCHAR(10) 7,\n            dayOfYear       SMALLINT 8,\n            weekOfMonth     TINYINT 9,\n            weekOfYear      TINYINT 10\n            \n            )\n        AS [result];\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_explorer",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

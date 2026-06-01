@@ -1,0 +1,20 @@
+{
+	"name": "08_create_silver_view",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/ingestion"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\n\n-- Create view for cehicle registartion\nDROP VIEW IF EXISTS silver.vw_vehicle_registration\nGO\n\nCREATE VIEW silver.vw_vehicle_registration\nAS\n    SELECT\n    result.filepath(1) AS year,\n    result.filepath(2) AS month,\n    result.*\n    FROM\n    OPENROWSET(\n        BULK 'silver/vehicle_registration/year=*/month=*/*.parquet',\n        DATA_SOURCE = 'electric_vehicle_source',\n        FORMAT = 'PARQUET'\n    )\n    WITH(\n        vehicle_id          INT,\n        location_id         SMALLINT,\n        propietary_id       INT,\n        dol_vehicle_id      INT,\n        registration_date   DATETIME2(7)\n    )\n    AS [result]\nGO\n\nSELECT * FROM silver.vw_vehicle_registration",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

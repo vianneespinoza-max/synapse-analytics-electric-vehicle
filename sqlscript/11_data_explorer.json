@@ -1,0 +1,20 @@
+{
+	"name": "11_data_explorer",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/explorer"
+		},
+		"content": {
+			"query": "USE electric_vehicle_explorer\n\nSELECT v.vin, v.modelYear, v.make, v.model\n    , classification\n    , vr.filepath(1) AS year, vr.filepath(2) AS month\nFROM OPENROWSET(\n    BULK 'cafv_eligibility.json',\n    DATA_SOURCE = 'electric_vehicle_data_bronze',\n    FORMAT = 'CSV',\n    FIELDTERMINATOR = '0x0b',\n    FIELDQUOTE = '0x0b',\n    ROWTERMINATOR = '0x0b'\n) \nWITH (\n    jsonDoc NVARCHAR(MAX)\n) AS cafv_elegibility\nCROSS APPLY OPENJSON(jsonDoc)\nWITH(\n    cafvEligibility_id SMALLINT '$.cafvEligibility',   \n    classification VARCHAR(100) \n)\nINNER JOIN\nOPENROWSET(\n        BULK 'bronze/vehicle.csv', \n        DATA_SOURCE = 'electric_vehicle_data',\n        FORMAT = 'CSV', \n        PARSER_VERSION = '2.0', \n        HEADER_ROW = TRUE\n        ) WITH (\n            vehicleId           INT,\n            vin                 VARCHAR(10),\n            modelYear           SMALLINT,\n            make                VARCHAR(25), \n            model               VARCHAR(25),\n            electricRange       SMALLINT,\n            baseMSRP           INT,\n            vehicheTypeId       SMALLINT,\n            cafvEligibilityId   SMALLINT,\n            vehicleLocation     VARCHAR(30)\n            )\n        AS v\nINNER JOIN\nOPENROWSET(\n        BULK 'vehicle_registration_parquet/year=*/month=*/*.parquet',\n        DATA_SOURCE = 'electric_vehicle_data_bronze',\n        FORMAT = 'PARQUET'\n) WITH (\n    vehicleId           INT,\n    registrationDate    DATETIME2(7)\n) \nAS vr\nON (v.vehicleId = vr.vehicleId)\nON (v.cafvEligibilityId = cafvEligibility_id)\nWHERE vr.filepath(1) = '2024' AND\nvr.filepath(2) IN ('06','07','08', '09')\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_explorer",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

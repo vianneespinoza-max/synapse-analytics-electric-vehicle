@@ -1,0 +1,20 @@
+{
+	"name": "02_create_bronze_views",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/virtualization"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n-- Views are objects that stores data and acts as virtual table without need to replacate them or move them to have access to those\n-- Create view for \"cafv_elegiility\"\n\nDROP VIEW IF EXISTS bronze.vw_cafv_elegiility\nGO\n\nCREATE VIEW bronze.vw_cafv_elegiility\nAS \n    SELECT cafvEligibility_id, classification\n    FROM OPENROWSET(\n        BULK 'bronze/cafv_eligibility.json',\n        DATA_SOURCE = 'electric_vehicle_source',\n        FORMAT = 'CSV',\n        FIELDTERMINATOR = '0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    ) \n    WITH (\n        jsonDoc NVARCHAR(MAX)\n    ) AS cafv_elegibility\n    CROSS APPLY OPENJSON(jsonDoc)\n    WITH(\n        cafvEligibility_id SMALLINT '$.cafvEligibility',   \n        classification VARCHAR(100) \n    )\nGO -- helps to replace; to continue the processes\n\nSELECT * FROM bronze.vw_cafv_elegiility\n\n\n\n-- Views are objects that stores data and acts as virtual table without need to replacate them or move them to have access to those\n-- Create view for \"vehicle_type\"\n\nDROP VIEW IF EXISTS bronze.vw_vehicle_type\nGO\n\nCREATE VIEW bronze.vw_vehicle_type\nAS \n    SELECT *\n    FROM OPENROWSET(\n        BULK 'bronze/vehicle_type.json',\n        DATA_SOURCE = 'electric_vehicle_source',\n        FORMAT = 'CSV',\n        FIELDTERMINATOR = '0x0b',\n        FIELDQUOTE = '0x0b'\n    ) \n    WITH (\n        jsonDoc NVARCHAR(MAX)\n    ) AS vehicle_type\n    CROSS APPLY OPENJSON(jsonDoc)\n    WITH(\n        vehicleType SMALLINT,   \n        electric_vehicle_type VARCHAR(100) '$.electricVehicleType'\n    )\nGO -- helps to replace; to continue the processes\n\nSELECT * FROM bronze.vw_vehicle_type\nGO\n\n\n-- Create view for \"vw_vehicle_registration_csv\" file\nDROP VIEW IF EXISTS bronze.vw_vehicle_registration_csv\nGO\n\nCREATE VIEW bronze.vw_vehicle_registration_csv\nAS\nSELECT\n    result.filepath(1) AS year,\n    result.filepath(2) AS month, \n    result.*\nFROM\n    OPENROWSET(\n        BULK 'bronze/vehicle_registration_csv/year=*/month=*/*',\n        DATA_SOURCE = 'electric_vehicle_source',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) WITH (\n        vehicleId           INT,\n        locationId          SMALLINT,\n        propietaryId        TINYINT,\n        dolVehicleId        INT, \n        registrationDate    DATETIME2(7) \n    ) AS [result]\nGO \n\nSELECT * FROM bronze.vw_vehicle_registration_csv\n\nSELECT COUNT(1)\nFROM bronze.vw_vehicle_registration_csv\nWHERE year = '2024' AND month = '01';\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

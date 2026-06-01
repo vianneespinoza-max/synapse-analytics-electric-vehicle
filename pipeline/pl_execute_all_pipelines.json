@@ -1,0 +1,129 @@
+{
+	"name": "pl_execute_all_pipelines",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Create Silver Table",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_create_silver_tables",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Create Silver Vehicle Registration",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_silver_vehicle_registration",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Create Gold Quantity OF Vehicle By Type",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Create Silver Table",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "Execute Create Silver Vehicle Registration",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_crete_gold_quantity_of_vehicle_by_type",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Create Gold Vehicle Registered",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Create Silver Table",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "Execute Create Silver Vehicle Registration",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_crete_gold_vehicle_registration_by_year_and_month",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Create Gold Vehicle Registration Agg",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Create Silver Table",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "Execute Create Silver Vehicle Registration",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_create_gold_vehicle_registration_agg",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-05-26T07:03:27Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,143 @@
+{
+	"name": "1_create_gold_vehicle_registration_agg",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "sparkpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "2bb2b167-2634-41d8-aad7-ef2b5d37fda2"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/ca275fc1-40e1-41fa-ba17-7bc040def023/resourceGroups/synapse-rg/providers/Microsoft.Synapse/workspaces/a-synapse-wrkspc/bigDataPools/sparkpool",
+				"name": "sparkpool",
+				"type": "Spark",
+				"endpoint": "https://a-synapse-wrkspc.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparkpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Vehicle Registration Data\n",
+					"#### Group By Columns\n",
+					"1. year\n",
+					"2. month\n",
+					"\n",
+					"#### Aggregated Columns\n",
+					"- total (vehicle)\n",
+					"\n",
+					"#### Objetivo del Notebook \n",
+					"Demostrar la integración entre Spark Poll y Serverless SQL pool\n",
+					"1. Crear la tabla de agregación\n",
+					"2. Acceder a los datos desde Serverless SQL Pool"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Configurar la ruta de las capas \"brnze\", \"silver\" y \"gold\"\n",
+					"\n",
+					"bronze_folder_path = 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net/bronze'\n",
+					"silver_folder_path = 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net/silver'\n",
+					"gold_folder_path = 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net/gold'\n",
+					""
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Establecer la configuración de spark para poder obtener las columnas particionadas\n",
+					"spark.conf.set(\"spark.sql.sources.partitionColumnTypeInference.enable\", \"false\")"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\n",
+					"\n",
+					"--- Crear la base de datos en la que vamos a trabajar\n",
+					"CREATE DATABASE IF NOT EXISTS electric_vehicle_ldw_spark\n",
+					"LOCATION 'abfss://electric-vehicle-data@asynapseadls.dfs.core.windows.net/gold';"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Leer los datos de la capa \"silver\" que se van a trabajar\n",
+					"vehicle_registration_df = spark.read.parquet(f\"{silver_folder_path}/vehicle_registration\")"
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Realizar las agregaciones por \"year\", \"month\" y \"registration_]date\"\n",
+					"from pyspark.sql.functions import *\n",
+					"\n",
+					"vehicle_registration_agg_df = vehicle_registration_df\\\n",
+					"                                .groupBy(\"year\", \"month\")\\\n",
+					"                                .agg(count(\"vehicle_id\").alias(\"total\"))"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Escribir los datos agregados en la capa \"gold\"\n",
+					"vehicle_registration_agg_df.write.mode(\"overwrite\").partitionBy(\"year\", \"month\").format(\"parquet\").saveAsTable(\"electric_vehicle_ldw_spark.vehicle_registration_agg\")"
+				],
+				"execution_count": 11
+			}
+		]
+	}
+}

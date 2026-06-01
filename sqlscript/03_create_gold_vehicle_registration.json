@@ -1,0 +1,20 @@
+{
+	"name": "03_create_gold_vehicle_registration",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/transformation"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n/*\nSELECT c.year, c.month,\nvr.registration_date, \nv.vin, v.model, v.model_year, v.make, v.electric_range, v.longitude, v.latitude,\nl.country, l.city, l.state, l.postal_code\nFROM\nsilver.vw_vehicle_registration vr\nINNER JOIN silver.vehicle v ON (vr.vehicle_id = v.vehicle_id)\nINNER JOIN silver.location l ON (vr.location_id = l.location_id)\nINNER JOIN silver.calendar c ON (CAST(vr.registration_date AS DATE) = c.date) \nWHERE c.year = '2024' and c.month = '06'\nORDER BY v.vin, vr.registration_date\nGO\n*/\n\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '01' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '02' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '03' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '04' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '05' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '06' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '07' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '08' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '09' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '10' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '11' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2024', '12' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2025', '01' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2025', '02' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2025', '03' GO\nEXEC gold.usp_gold_vehicle_registration_by_year_and_month '2025', '04' GO\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

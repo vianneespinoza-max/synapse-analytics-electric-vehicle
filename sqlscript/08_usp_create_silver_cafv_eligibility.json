@@ -1,0 +1,20 @@
+{
+	"name": "08_usp_create_silver_cafv_eligibility",
+	"properties": {
+		"folder": {
+			"name": "electric_vehicle/ldw/usp"
+		},
+		"content": {
+			"query": "USE electric_vehicle_ldw\nGO\n\nCREATE OR ALTER PROC silver.usp_silver_cafv_eligibility\nAS\nBEGIN\n    IF OBJECT_ID('silver.cafv_eligibility') IS NOT NULL\n        DROP EXTERNAL TABLE silver.cafv_eligibility;\n\n    \n    CREATE EXTERNAL TABLE  silver.cafv_eligibility\n    WITH\n    (\n        DATA_SOURCE = electric_vehicle_source,\n        LOCATION = 'silver/cafv_eligibility',\n        FILE_FORMAT = parquet_file_format\n    )AS\n        SELECT cafvEligibility_id, classification\n            FROM OPENROWSET(\n                BULK 'bronze/cafv_eligibility.json',\n                DATA_SOURCE = 'electric_vehicle_source',\n                FORMAT = 'CSV',\n                FIELDTERMINATOR = '0x0b',\n                FIELDQUOTE = '0x0b',\n                ROWTERMINATOR = '0x0b'\n            ) \n            WITH (\n                jsonDoc NVARCHAR(MAX)\n            ) AS cafv_elegibility\n            CROSS APPLY OPENJSON(jsonDoc)\n            WITH(\n                cafvEligibility_id SMALLINT '$.cafvEligibility',   \n                classification VARCHAR(100) \n            );\n\nEND;\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "electric_vehicle_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
